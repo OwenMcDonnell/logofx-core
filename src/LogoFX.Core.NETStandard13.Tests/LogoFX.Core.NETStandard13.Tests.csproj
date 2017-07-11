@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>    
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\LogoFX.Core.Tests\CollectionsExtensionsTests.cs" Link="CollectionsExtensionsTests.cs" />
+    <Compile Include="..\LogoFX.Core.Tests\ConcurrentObservableCollectionTests.cs" Link="ConcurrentObservableCollectionTests.cs" />
+    <Compile Include="..\LogoFX.Core.Tests\StringExtensionsTests.cs" Link="StringExtensionsTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LogoFX.Core\netstandard1.3\LogoFX.Core.NETStandard13.csproj" />
+  </ItemGroup>
+
+</Project>

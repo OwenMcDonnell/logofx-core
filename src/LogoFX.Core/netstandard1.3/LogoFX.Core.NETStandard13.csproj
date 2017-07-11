@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <AssemblyName>LogoFX.Core</AssemblyName>
+    <RootNamespace>LogoFX.Core</RootNamespace>
+    <Version>1.0.8</Version>
+    <FileVersion>1.0.8</FileVersion>
+    <AssemblyVersion>1.0.8</AssemblyVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\bin\netstandard1.3\Release</OutputPath>
+    <DocumentationFile>..\..\bin\netstandard1.3\Release\netstandard1.3\LogoFX.Core.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\src\ConcurrentObservableCollection.cs" Link="ConcurrentObservableCollection.cs" />
+    <Compile Include="..\src\EnumerableExtensions.cs" Link="EnumerableExtensions.cs" />
+    <Compile Include="..\src\IRangeCollection.cs" Link="IRangeCollection.cs" />
+    <Compile Include="..\src\RangeObservableCollection.cs" Link="RangeObservableCollection.cs" />
+    <Compile Include="..\src\ResharperAnnotations.cs" Link="ResharperAnnotations.cs" />
+    <Compile Include="..\src\StringExtensions.cs" Link="StringExtensions.cs" />
+    <Compile Include="..\src\WeakCollections.cs" Link="WeakCollections.cs" />
+    <Compile Include="..\src\WeakDelegate.cs" Link="WeakDelegate.cs" />
+  </ItemGroup>
+
+</Project>
