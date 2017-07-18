@@ -53,9 +53,6 @@
     <Compile Include="..\src\RangeObservableCollection.cs">
       <Link>RangeObservableCollection.cs</Link>
     </Compile>
-    <Compile Include="..\src\ResharperAnnotations.cs">
-      <Link>ResharperAnnotations.cs</Link>
-    </Compile>
     <Compile Include="..\src\StringExtensions.cs">
       <Link>StringExtensions.cs</Link>
     </Compile>

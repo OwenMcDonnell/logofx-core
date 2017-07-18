@@ -19,7 +19,6 @@
     <Compile Include="..\src\EnumerableExtensions.cs" Link="EnumerableExtensions.cs" />
     <Compile Include="..\src\IRangeCollection.cs" Link="IRangeCollection.cs" />
     <Compile Include="..\src\RangeObservableCollection.cs" Link="RangeObservableCollection.cs" />
-    <Compile Include="..\src\ResharperAnnotations.cs" Link="ResharperAnnotations.cs" />
     <Compile Include="..\src\StringExtensions.cs" Link="StringExtensions.cs" />
     <Compile Include="..\src\WeakCollections.cs" Link="WeakCollections.cs" />
     <Compile Include="..\src\WeakDelegate.cs" Link="WeakDelegate.cs" />
