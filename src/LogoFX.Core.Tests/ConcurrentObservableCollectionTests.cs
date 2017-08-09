@@ -45,9 +45,10 @@ namespace LogoFX.Core.Tests
         public void Ctor_DoesntThrow()
         {
             Assert.DoesNotThrow(() => new ConcurrentObservableCollection<int>());
-        }       
+        }
 
-        [Test]
+#if NET45
+[Test]
         public void Performance_MonitorNumberOfAllocatedThreads()
         {
             int maxNumberOfThreads = 0;
@@ -75,6 +76,8 @@ namespace LogoFX.Core.Tests
             Console.WriteLine("Max number of threads  {0}", maxNumberOfThreads);
             Assert.That(maxNumberOfThreads - currentNumberOfThreads, Is.LessThan(10), "too many threads created");
         }
+#endif
+
 
         [Test]
         public void ReadWrite_EnumeratingThreadTriesToWriteToCollection_NoDeadlock()
@@ -120,7 +123,9 @@ namespace LogoFX.Core.Tests
             task2.Start();
             Task.WaitAll(new[] { task1, task2 });
             Assert.That(res1, Is.LessThan(99));
+#if NET45
             Debug.Print("result: {0}", res1);
+#endif
         }
 
         [Test]
@@ -218,8 +223,10 @@ namespace LogoFX.Core.Tests
 
             Assert.That(col.Count, Is.EqualTo(100), "collection was not filled");
             Assert.That(current, Is.InRange(49, 100), "enumeration was not running simultaneously with update");
+#if NET45
             Debug.Print("Collection size: {0}", col.Count);
             Debug.Print("current: {0}", current);
+#endif
         }
 
         [Test]
@@ -229,8 +236,6 @@ namespace LogoFX.Core.Tests
             col.Add("a");
             Assert.That(col.First(), Is.EqualTo("a"));
         }
-
-
 
         [Test]
         public void Write_AddNull_ElementAdded()
@@ -392,7 +397,9 @@ namespace LogoFX.Core.Tests
             task2.Start();
             Task.WaitAll(new[] { task1, task2 });
             Assert.That(col.Count, Is.LessThan(1000));
+#if NET45
             Debug.Print("Collection size: {0}", col.Count);
+#endif
         }
 
         [Test]
