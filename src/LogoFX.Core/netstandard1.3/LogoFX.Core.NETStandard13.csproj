@@ -4,9 +4,9 @@
     <TargetFramework>netstandard1.3</TargetFramework>
     <AssemblyName>LogoFX.Core</AssemblyName>
     <RootNamespace>LogoFX.Core</RootNamespace>
-    <Version>1.0.8</Version>
-    <FileVersion>1.0.8</FileVersion>
-    <AssemblyVersion>1.0.8</AssemblyVersion>
+    <Version>1.1.0</Version>
+    <FileVersion>1.1.0</FileVersion>
+    <AssemblyVersion>1.1.0</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
