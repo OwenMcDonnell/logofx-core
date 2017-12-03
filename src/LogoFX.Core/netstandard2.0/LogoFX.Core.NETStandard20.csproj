@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>LogoFX.Core</AssemblyName>
+    <RootNamespace>LogoFX.Core</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\bin\netstandard2.0\Release</OutputPath>
+    <DocumentationFile>..\..\bin\netstandard2.0\Release\netstandard2.0\LogoFX.Core.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\src\ConcurrentObservableCollection.cs" Link="ConcurrentObservableCollection.cs" />
+    <Compile Include="..\src\EnumerableExtensions.cs" Link="EnumerableExtensions.cs" />
+    <Compile Include="..\src\IRangeCollection.cs" Link="IRangeCollection.cs" />
+    <Compile Include="..\src\RangeObservableCollection.cs" Link="RangeObservableCollection.cs" />
+    <Compile Include="..\src\StringExtensions.cs" Link="StringExtensions.cs" />
+    <Compile Include="..\src\WeakCollections.cs" Link="WeakCollections.cs" />
+    <Compile Include="..\src\WeakDelegate.cs" Link="WeakDelegate.cs" />
+  </ItemGroup>
+
+</Project>
