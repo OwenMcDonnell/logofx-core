@@ -68,8 +68,10 @@ namespace LogoFX.Core
             _suppressNotification = false;
             OnPropertyChanged(new PropertyChangedEventArgs("Count"));
             OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
-                                                                     new List<T>(enumerable)));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(
+                NotifyCollectionChangedAction.Add,
+                new List<T>(enumerable), 
+                initialindex));
         }
 
         /// <summary>
@@ -99,9 +101,20 @@ namespace LogoFX.Core
             _suppressNotification = false;
             OnPropertyChanged(new PropertyChangedEventArgs("Count"));
             OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+
+            NotifyCollectionChangedEventArgs eventArgs;
+
+            //if (count == 1)
+            //{
+            //    eventArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, singleItem, index);
+            //}
+            //else
+            //{
+            //    eventArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, )
+            //}
+
             OnCollectionChanged(count == 1
-                ? new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, singleItem,
-                    index)
+                ? new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, singleItem, index)
                 : new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
