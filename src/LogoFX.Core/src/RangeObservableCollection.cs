@@ -68,10 +68,7 @@ namespace LogoFX.Core
             _suppressNotification = false;
             OnPropertyChanged(new PropertyChangedEventArgs("Count"));
             OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(
-                NotifyCollectionChangedAction.Add,
-                new List<T>(enumerable), 
-                initialindex));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<T>(enumerable)));
         }
 
         /// <summary>
