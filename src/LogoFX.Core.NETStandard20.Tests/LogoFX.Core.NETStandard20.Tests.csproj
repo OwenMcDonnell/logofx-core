@@ -48,6 +48,9 @@
     <Compile Include="..\LogoFX.Core.Tests\ConcurrentObservableCollectionTests.cs">
       <Link>ConcurrentObservableCollectionTests.cs</Link>
     </Compile>
+    <Compile Include="..\LogoFX.Core.Tests\RangeObservableCollectionTests.cs">
+      <Link>RangeObservableCollectionTests.cs</Link>
+    </Compile>
     <Compile Include="..\LogoFX.Core.Tests\StringExtensionsTests.cs">
       <Link>StringExtensionsTests.cs</Link>
     </Compile>

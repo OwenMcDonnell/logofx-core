@@ -8,6 +8,7 @@ using NUnit.Framework;
 
 namespace LogoFX.Core.Tests
 {
+
     [TestFixture]    
     public class ConcurrentObservableCollectionTests
     {
