@@ -135,15 +135,22 @@ namespace LogoFX.Core.Tests
         {
             var col = new RangeObservableCollection<string>(new[] { "a" });
 
-            int eventsNumber = 0;
-            col.CollectionChanged += (sender, args) => eventsNumber++;
+            var argsList = new List<NotifyCollectionChangedEventArgs>();
+            col.CollectionChanged += (sender, args) =>
+            {
+                argsList.Add(args);
+            };
             col.AddRange(new[] { "z1", "f1", "y1" });
             col.AddRange(new[] { "z2", "f2", "y2" });
             col.AddRange(new[] { "z3", "f3", "y3" });
             col.AddRange(new[] { "z4", "f4", "y4" });
             col.AddRange(new[] { "z5", "f5", "y5" });
 
-            Assert.That(eventsNumber, Is.EqualTo(5));
+            Assert.That(argsList.Count(x => x.Action == NotifyCollectionChangedAction.Add), Is.EqualTo(5));
+            foreach (var args in argsList)
+            {
+                CollectionAssert.AreEquivalent(args.NewItems, col.Skip(args.NewStartingIndex).Take(args.NewItems.Count));
+            }
             CollectionAssert.AreEquivalent(new[] { "a", "z1", "f1", "y1", "z2", "f2", "y2", "z3", "f3", "y3", "z4", "f4", "y4", "z5", "f5", "y5" }, col);
         }
 
@@ -191,7 +198,7 @@ namespace LogoFX.Core.Tests
                     received = args.OldItems.OfType<string>().First();
                 }
             };
-            col.RemoveRange(new[] { "a", "b", "c" });
+            col.RemoveRange(new[] { "a", "b"});
             Assert.That(received, Is.EqualTo("a"));
         }
 
@@ -325,7 +332,163 @@ namespace LogoFX.Core.Tests
             col.RemoveRange(select);
 
             CollectionAssert.AreEquivalent(col, new[] { "a", "b" });
+        }
 
+        [Test]
+        public void RemoveRange_SequentialRemove_StartFromFirstElement_FiresRemoveEvent()
+        {
+            var col = new RangeObservableCollection<string>(new[] {"a", "b", "c", "d", "e", "f", "g"});
+
+            var received = new List<string>();
+            int oldIndex = -1;
+            col.CollectionChanged += (sender, args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    received.AddRange(args.OldItems.OfType<string>());
+                    oldIndex = args.OldStartingIndex;
+                }
+            };
+            col.RemoveRange(new[] { "a", "b", "c", "d", "e" });
+            Assert.That(oldIndex, Is.EqualTo(0));
+            CollectionAssert.AreEquivalent(received, new[] { "a", "b", "c", "d", "e" });
+            CollectionAssert.AreEquivalent(col, new[] {"f", "g"});
+        }
+
+        [Test]
+        public void RemoveRange_SequentialRemove_StartFromSecondElement_FiresRemoveEvent()
+        {
+            var col = new RangeObservableCollection<string>(new[] {"a", "b", "c", "d", "e", "f", "g"});
+
+            var received = new List<string>();
+            int oldIndex = -1;
+            col.CollectionChanged += (sender, args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    received.AddRange(args.OldItems.OfType<string>());
+                    oldIndex = args.OldStartingIndex;
+                }
+            };
+            col.RemoveRange(new[] {"b", "c", "d", "e"});
+            Assert.That(oldIndex, Is.EqualTo(1));
+            CollectionAssert.AreEquivalent(received, new[] {"b", "c", "d", "e"});
+            CollectionAssert.AreEquivalent(col, new[] {"a", "f", "g"});
+        }
+
+        [Test]
+        public void RemoveRange_AllRemove_FiresResetEvent()
+        {
+            var col = new RangeObservableCollection<string>(new[] {"a", "b", "c", "d", "e", "f"});
+
+            int received = 0;
+            col.CollectionChanged += (sender, args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Reset)
+                {
+                    ++received;
+                }
+            };
+
+            col.RemoveRange(new[] {"a", "b", "c", "d", "e", "f"});
+            
+            Assert.That(received, Is.EqualTo(1));
+            CollectionAssert.IsEmpty(col);
+        }
+
+        [Test]
+        public void RemoveRange_RemoveOneElement_FiresRemoveEvent()
+        {
+            var col = new RangeObservableCollection<string>(new[] {"a", "b", "c", "d", "e", "f", "g"});
+
+            var received = new List<string>();
+            int oldIndex = -1;
+            col.CollectionChanged += (sender, args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    received.AddRange(args.OldItems.OfType<string>());
+                    oldIndex = args.OldStartingIndex;
+                }
+            };
+            col.RemoveRange(new[] {"d"});
+            Assert.That(oldIndex, Is.EqualTo(3));
+            CollectionAssert.AreEquivalent(received, new[] {"d"});
+            CollectionAssert.AreEquivalent(col, new[] {"a", "b", "c", "e", "f", "g"});
+        }
+
+        [Test]
+        public void RemoveRange_NotSequentialRemove1_FiresRemoveEvent()
+        {
+            var col = new RangeObservableCollection<string>(new[] {"a", "b", "c", "d", "e", "f", "g"});
+
+            var received = new List<NotifyCollectionChangedEventArgs>();
+            col.CollectionChanged += (sender, args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    received.Add(args);
+                }
+            };
+            col.RemoveRange(new[] {"b", "c", "a", "d"});
+
+            Assert.That(received.Count, Is.EqualTo(2));
+
+            CollectionAssert.AreEquivalent(received[0].OldItems, new[] {"b", "c"});
+            Assert.That(received[0].OldStartingIndex, Is.EqualTo(1));
+            CollectionAssert.AreEquivalent(received[1].OldItems, new[] {"a", "d"});
+            Assert.That(received[1].OldStartingIndex, Is.EqualTo(0));
+            CollectionAssert.AreEquivalent(col, new[] {"e", "f", "g"});
+        }
+
+        [Test]
+        public void RemoveRange_NotSequentialRemove2_FiresRemoveEvent()
+        {
+            var col = new RangeObservableCollection<string>(new[] {"a", "b", "c", "d", "e", "f", "g"});
+
+            var received = new List<NotifyCollectionChangedEventArgs>();
+            col.CollectionChanged += (sender, args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    received.Add(args);
+                }
+            };
+            col.RemoveRange(new[] {"b", "c", "f", "g"});
+
+            Assert.That(received.Count, Is.EqualTo(2));
+
+            CollectionAssert.AreEquivalent(received[0].OldItems, new[] {"b", "c"});
+            Assert.That(received[0].OldStartingIndex, Is.EqualTo(1));
+            CollectionAssert.AreEquivalent(received[1].OldItems, new[] {"f", "g"});
+            Assert.That(received[1].OldStartingIndex, Is.EqualTo(3));
+            CollectionAssert.AreEquivalent(col, new[] {"a", "d", "e"});
+        }
+
+        [Test]
+        public void RemoveRange_NotSequentialRemove3_FiresRemoveEvent()
+        {
+            var col = new RangeObservableCollection<string>(new[] {"a", "b", "c", "d", "e", "f", "g"});
+
+            var received = new List<NotifyCollectionChangedEventArgs>();
+            col.CollectionChanged += (sender, args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    received.Add(args);
+                }
+            };
+            col.RemoveRange(new[] {"b", "c", "a", "g"});
+
+            Assert.That(received.Count, Is.EqualTo(3));
+
+            CollectionAssert.AreEquivalent(received[0].OldItems, new[] {"b", "c"});
+            Assert.That(received[0].OldStartingIndex, Is.EqualTo(1));
+            CollectionAssert.AreEquivalent(received[1].OldItems, new[] {"a"});
+            Assert.That(received[1].OldStartingIndex, Is.EqualTo(0));
+            CollectionAssert.AreEquivalent(received[2].OldItems, new[] {"g"});
+            Assert.That(received[2].OldStartingIndex, Is.EqualTo(3));
+            CollectionAssert.AreEquivalent(col, new[] {"d", "e", "f"});
         }
     }
 }

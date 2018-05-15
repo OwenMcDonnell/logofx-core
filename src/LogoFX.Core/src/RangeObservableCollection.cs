@@ -68,7 +68,7 @@ namespace LogoFX.Core
             _suppressNotification = false;
             OnPropertyChanged(new PropertyChangedEventArgs("Count"));
             OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<T>(enumerable)));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<T>(enumerable), initialindex));
         }
 
         /// <summary>
@@ -78,41 +78,66 @@ namespace LogoFX.Core
         public void RemoveRange(IEnumerable<T> range)
         {
             if (range == null)
-                throw new ArgumentNullException("range");
-
-            _suppressNotification = true;            
-            var enumerable = range as T[] ?? range.ToArray();
-            var count = enumerable.Length;
-            var index = -1;
-            T singleItem = default(T);
-            if (count == 1)
             {
-                singleItem = enumerable[0];
-                index = IndexOf(singleItem);
-
+                throw new ArgumentNullException(nameof(range));
             }
-            foreach (var item in enumerable)
+
+            if (Count == 0)
             {
-                Remove(item);
-            }            
+                return;
+            }
+            
+            var enumerable = range as T[] ?? range.ToArray();
+
+            if (enumerable.Length == 0)
+            {
+                return;
+            }
+
+            if (enumerable.Length == 1)
+            {
+                Remove(enumerable[0]);
+                return;
+            }
+
+            var clusters = new Dictionary<int, List<T>>();
+            var lastIndex = -1;
+            List<T> lastCluster = null;
+            foreach (T item in enumerable)
+            {
+                var index = IndexOf(item);
+                if (index < 0)
+                {
+                    continue;
+                }
+
+                Items.RemoveAt(index);
+
+                if (lastIndex == index && lastCluster != null)
+                {
+                    lastCluster.Add(item);
+                }
+                else
+                {
+                    clusters[lastIndex = index] = lastCluster = new List<T> { item };
+                }
+            }
+
             _suppressNotification = false;
-            OnPropertyChanged(new PropertyChangedEventArgs("Count"));
+            OnPropertyChanged(new PropertyChangedEventArgs(nameof(Count)));
             OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
 
-            NotifyCollectionChangedEventArgs eventArgs;
-
-            //if (count == 1)
-            //{
-            //    eventArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, singleItem, index);
-            //}
-            //else
-            //{
-            //    eventArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, )
-            //}
-
-            OnCollectionChanged(count == 1
-                ? new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, singleItem, index)
-                : new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            if (Count == 0)
+            {
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
+            else
+            {
+                foreach (KeyValuePair<int, List<T>> cluster in clusters)
+                {
+                    OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, cluster.Value, cluster.Key));
+                }
+            }
         }
 
         /// <summary>
@@ -124,6 +149,19 @@ namespace LogoFX.Core
             if (_suppressNotification == false)
             {
                 base.OnPropertyChanged(e);
+            }
+        }
+
+        /// <summary>
+        /// Helper function to determine if a collection contains any elements.
+        /// </summary>
+        /// <param name="collection">The collection to evaluate.</param>
+        /// <returns></returns>
+        private static bool ContainsAny(IEnumerable<T> collection)
+        {
+            using (IEnumerator<T> enumerator = collection.GetEnumerator())
+            {
+                return enumerator.MoveNext();
             }
         }
     }

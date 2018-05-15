@@ -80,16 +80,18 @@ namespace LogoFX.Core
         /// <param name="item">The object to add to the <see cref="T:System.Collections.Generic.ICollection`1"/>.</param><exception cref="T:System.NotSupportedException">The <see cref="T:System.Collections.Generic.ICollection`1"/> is read-only.</exception>
         public void Add(T item)
         {
+            int index;
             EnterWriteLock();
             try
             {
+                index = _items.Count;
                 _items.Add(item);
             }
             finally
             {
                 _lock.ExitWriteLock();
             }
-            RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
+            RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
         }
 
         /// <summary>
@@ -164,20 +166,23 @@ namespace LogoFX.Core
         /// <param name="item">The object to remove from the <see cref="T:System.Collections.Generic.ICollection`1"/>.</param><exception cref="T:System.NotSupportedException">The <see cref="T:System.Collections.Generic.ICollection`1"/> is read-only.</exception>
         public bool Remove(T item)
         {
+            int index = -1;
+
             EnterWriteLock();
             try
             {
-                if (!_items.Contains(item))
+                index = _items.IndexOf(item);
+                if (index < 0)
                 {
                     return false;
                 }
-                _items.Remove(item);
+                _items.RemoveAt(index);
             }
             finally
             {
                 _lock.ExitWriteLock();
             }
-            RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
+            RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
             return true;
         }
 
@@ -328,16 +333,18 @@ namespace LogoFX.Core
             }
 
             EnterWriteLock();
-
+            int index;
             try
             {
+                index = _items.Count;
                 _items.AddRange(add);
             }
             finally
             {
                 _lock.ExitWriteLock();
             }
-            RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, add.ToList()));
+
+            RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, add, index));
         }
 
         /// <summary>
@@ -346,29 +353,89 @@ namespace LogoFX.Core
         /// <param name="range">The range.</param>
         public void RemoveRange(IEnumerable<T> range)
         {
+            if (range == null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (Count == 0)
+            {
+                return;
+            }
+            
             //'range' might be a Linq query of kind that is actualy realized on first access. If i don't unfold this query here, then it will
             //be unfolded inside write lock on call to ForEach. This will cause exception if 'range' is Linq query on this very same 
             //ConcurrentObservableCollection. The exception will happen because call to ForEach will try to acquire Read lock. But we already got
             //Write lock in the same thread (call to EnterWriteLock already happened). When you try to get Read lock over Write lock in same
             //thread, then ReadWriteSlimLock fires exception.
 
-            T[] rangeArray = range.ToArray();
-            if (rangeArray.Length == 0)
+            var enumerable = range as T[] ?? range.ToArray();
+
+            if (enumerable.Length == 0)
             {
                 return;
             }
+
+            var clusters = new Dictionary<int, List<T>>();
 
             EnterWriteLock();
 
             try
             {
-                rangeArray.ForEach(i => _items.Remove(i));
+                //rangeArray.ForEach(i => _items.Remove(i));
+               
+                if (enumerable.Length == 1)
+                {
+                    var item = enumerable[0];
+                    var index = _items.IndexOf(item);
+                    _items.RemoveAt(index);
+                    clusters[index] = new List<T> {item};
+                }
+                else
+                {
+                    var lastIndex = -1;
+                    List<T> lastCluster = null;
+                    foreach (T item in enumerable)
+                    {
+                        var index = _items.IndexOf(item);
+                        if (index < 0)
+                        {
+                            continue;
+                        }
+
+                        _items.RemoveAt(index);
+
+                        if (lastIndex == index && lastCluster != null)
+                        {
+                            lastCluster.Add(item);
+                        }
+                        else
+                        {
+                            clusters[lastIndex = index] = lastCluster = new List<T> {item};
+                        }
+                    }
+                }
+
             }
+            
             finally
             {
                 _lock.ExitWriteLock();
             }
-            RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, rangeArray.ToList()));
+
+            //RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, rangeArray.ToList()));
+
+            if (Count == 0)
+            {
+                RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
+            else
+            {
+                foreach (var cluster in clusters)
+                {
+                    RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, cluster.Value, cluster.Key));
+                }
+            }
         }
 
         /// <summary>
