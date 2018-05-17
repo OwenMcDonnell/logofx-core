@@ -71,11 +71,7 @@ namespace LogoFX.Core
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<T>(enumerable), initialindex));
         }
 
-        /// <summary>
-        /// Removes the range of items as single operation.
-        /// </summary>
-        /// <param name="range">The range.</param>
-        public void RemoveRange(IEnumerable<T> range)
+        public void RemoveRange(IEnumerable<T> range, Action<IEnumerable<T>> beforeResetAction)
         {
             if (range == null)
             {
@@ -86,7 +82,7 @@ namespace LogoFX.Core
             {
                 return;
             }
-            
+
             var enumerable = range as T[] ?? range.ToArray();
 
             if (enumerable.Length == 0)
@@ -99,6 +95,25 @@ namespace LogoFX.Core
                 Remove(enumerable[0]);
                 return;
             }
+
+            if (beforeResetAction != null && enumerable.Length >= Count)
+            {
+                int count = Count;
+                foreach (var item in enumerable)
+                {
+                    if (Contains(item))
+                    {
+                        --count;
+                    }
+                }
+
+                if (count == 0)
+                {
+                    beforeResetAction(enumerable);
+                }
+            }
+
+            _suppressNotification = true;
 
             var clusters = new Dictionary<int, List<T>>();
             var lastIndex = -1;
@@ -119,7 +134,7 @@ namespace LogoFX.Core
                 }
                 else
                 {
-                    clusters[lastIndex = index] = lastCluster = new List<T> { item };
+                    clusters[lastIndex = index] = lastCluster = new List<T> {item};
                 }
             }
 
@@ -138,6 +153,15 @@ namespace LogoFX.Core
                     OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, cluster.Value, cluster.Key));
                 }
             }
+        }
+
+        /// <summary>
+        /// Removes the range of items as single operation.
+        /// </summary>
+        /// <param name="range">The range.</param>
+        public void RemoveRange(IEnumerable<T> range)
+        {
+            RemoveRange(range, null);
         }
 
         /// <summary>
