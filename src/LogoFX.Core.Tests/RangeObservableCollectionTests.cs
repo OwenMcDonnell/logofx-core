@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace LogoFX.Core.Tests
@@ -17,8 +16,7 @@ namespace LogoFX.Core.Tests
             Assert.DoesNotThrow(() => new RangeObservableCollection<int>());
         }
 
-#if NET45
-[Test]
+        [Test]
         public void Performance_MonitorNumberOfAllocatedThreads()
         {
             int maxNumberOfThreads = 0;
@@ -28,10 +26,10 @@ namespace LogoFX.Core.Tests
             Console.WriteLine("Number of threads before run {0}", currentNumberOfThreads);
             for (int j = 0; j < 100; j++)
             {
-                var threadSafe = new RangeObservableCollection<int>();
+                var collection = new RangeObservableCollection<int>();
                 for (int i = 0; i < 100; i++)
                 {
-                    threadSafe.Add(i);
+                    collection.Add(i);
 
                     if (i % 10 == 0)
                     {
@@ -46,8 +44,6 @@ namespace LogoFX.Core.Tests
             Console.WriteLine("Max number of threads  {0}", maxNumberOfThreads);
             Assert.That(maxNumberOfThreads - currentNumberOfThreads, Is.LessThan(10), "too many threads created");
         }
-#endif
-
 
         [Test]
         public void Read_CheckLengthAfterAdd_LengthIsUpdated()

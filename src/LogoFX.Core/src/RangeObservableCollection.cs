@@ -71,7 +71,26 @@ namespace LogoFX.Core
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<T>(enumerable), initialindex));
         }
 
+        /// <summary>
+        /// Removes the range of items as single operation.
+        /// </summary>
+        /// <param name="range">The items to be removed.</param>
+        /// <param name="beforeResetAction">The action tp be invoked before the underlying collection is reset.</param>
         public void RemoveRange(IEnumerable<T> range, Action<IEnumerable<T>> beforeResetAction)
+        {
+            RemoveRangeImpl(range, beforeResetAction);
+        }
+
+        /// <summary>
+        /// Removes the range of items as single operation.
+        /// </summary>
+        /// <param name="range">The items to nbe removed.</param>
+        public void RemoveRange(IEnumerable<T> range)
+        {
+            RemoveRangeImpl(range, null);
+        }
+
+        private void RemoveRangeImpl(IEnumerable<T> range, Action<IEnumerable<T>> beforeResetAction)
         {
             if (range == null)
             {
@@ -134,7 +153,7 @@ namespace LogoFX.Core
                 }
                 else
                 {
-                    clusters[lastIndex = index] = lastCluster = new List<T> {item};
+                    clusters[lastIndex = index] = lastCluster = new List<T> { item };
                 }
             }
 
@@ -153,16 +172,7 @@ namespace LogoFX.Core
                     OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, cluster.Value, cluster.Key));
                 }
             }
-        }
-
-        /// <summary>
-        /// Removes the range of items as single operation.
-        /// </summary>
-        /// <param name="range">The range.</param>
-        public void RemoveRange(IEnumerable<T> range)
-        {
-            RemoveRange(range, null);
-        }
+        }        
 
         /// <summary>
         /// Raises the <see cref="E:System.Collections.ObjectModel.ObservableCollection`1.PropertyChanged"/> event with the provided arguments.
