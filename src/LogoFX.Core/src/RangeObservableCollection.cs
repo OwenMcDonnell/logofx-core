@@ -68,42 +68,111 @@ namespace LogoFX.Core
             _suppressNotification = false;
             OnPropertyChanged(new PropertyChangedEventArgs("Count"));
             OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
-                                                                     new List<T>(enumerable)));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<T>(enumerable), initialindex));
         }
 
         /// <summary>
         /// Removes the range of items as single operation.
         /// </summary>
-        /// <param name="range">The range.</param>
+        /// <param name="range">The items to be removed.</param>
+        /// <param name="beforeResetAction">The action tp be invoked before the underlying collection is reset.</param>
+        public void RemoveRange(IEnumerable<T> range, Action<IEnumerable<T>> beforeResetAction)
+        {
+            RemoveRangeImpl(range, beforeResetAction);
+        }
+
+        /// <summary>
+        /// Removes the range of items as single operation.
+        /// </summary>
+        /// <param name="range">The items to nbe removed.</param>
         public void RemoveRange(IEnumerable<T> range)
         {
-            if (range == null)
-                throw new ArgumentNullException("range");
-
-            _suppressNotification = true;            
-            var enumerable = range as T[] ?? range.ToArray();
-            var count = enumerable.Length;
-            var index = -1;
-            T singleItem = default(T);
-            if (count == 1)
-            {
-                singleItem = enumerable[0];
-                index = IndexOf(singleItem);
-
-            }
-            foreach (var item in enumerable)
-            {
-                Remove(item);
-            }            
-            _suppressNotification = false;
-            OnPropertyChanged(new PropertyChangedEventArgs("Count"));
-            OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-            OnCollectionChanged(count == 1
-                ? new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, singleItem,
-                    index)
-                : new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            RemoveRangeImpl(range, null);
         }
+
+        private void RemoveRangeImpl(IEnumerable<T> range, Action<IEnumerable<T>> beforeResetAction)
+        {
+            if (range == null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (Count == 0)
+            {
+                return;
+            }
+
+            var enumerable = range as T[] ?? range.ToArray();
+
+            if (enumerable.Length == 0)
+            {
+                return;
+            }
+
+            if (enumerable.Length == 1)
+            {
+                Remove(enumerable[0]);
+                return;
+            }
+
+            if (beforeResetAction != null && enumerable.Length >= Count)
+            {
+                int count = Count;
+                foreach (var item in enumerable)
+                {
+                    if (Contains(item))
+                    {
+                        --count;
+                    }
+                }
+
+                if (count == 0)
+                {
+                    beforeResetAction(enumerable);
+                }
+            }
+
+            _suppressNotification = true;
+
+            var clusters = new Dictionary<int, List<T>>();
+            var lastIndex = -1;
+            List<T> lastCluster = null;
+            foreach (T item in enumerable)
+            {
+                var index = IndexOf(item);
+                if (index < 0)
+                {
+                    continue;
+                }
+
+                Items.RemoveAt(index);
+
+                if (lastIndex == index && lastCluster != null)
+                {
+                    lastCluster.Add(item);
+                }
+                else
+                {
+                    clusters[lastIndex = index] = lastCluster = new List<T> { item };
+                }
+            }
+
+            _suppressNotification = false;
+            OnPropertyChanged(new PropertyChangedEventArgs(nameof(Count)));
+            OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+
+            if (Count == 0)
+            {
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
+            else
+            {
+                foreach (KeyValuePair<int, List<T>> cluster in clusters)
+                {
+                    OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, cluster.Value, cluster.Key));
+                }
+            }
+        }        
 
         /// <summary>
         /// Raises the <see cref="E:System.Collections.ObjectModel.ObservableCollection`1.PropertyChanged"/> event with the provided arguments.
@@ -114,6 +183,19 @@ namespace LogoFX.Core
             if (_suppressNotification == false)
             {
                 base.OnPropertyChanged(e);
+            }
+        }
+
+        /// <summary>
+        /// Helper function to determine if a collection contains any elements.
+        /// </summary>
+        /// <param name="collection">The collection to evaluate.</param>
+        /// <returns></returns>
+        private static bool ContainsAny(IEnumerable<T> collection)
+        {
+            using (IEnumerator<T> enumerator = collection.GetEnumerator())
+            {
+                return enumerator.MoveNext();
             }
         }
     }
