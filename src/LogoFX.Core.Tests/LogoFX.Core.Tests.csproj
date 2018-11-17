@@ -7,8 +7,8 @@
     <ProjectGuid>{FDA482D8-90FB-4C19-A7E4-F71BC63BC802}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LogoFX.Core.NETStandard20.Tests</RootNamespace>
-    <AssemblyName>LogoFX.Core.NETStandard20.Tests</AssemblyName>
+    <RootNamespace>LogoFX.Core.Tests</RootNamespace>
+    <AssemblyName>LogoFX.Core.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -41,18 +41,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\LogoFX.Core.Tests\CollectionsExtensionsTests.cs">
-      <Link>CollectionsExtensionsTests.cs</Link>
-    </Compile>
-    <Compile Include="..\LogoFX.Core.Tests\ConcurrentObservableCollectionTests.cs">
-      <Link>ConcurrentObservableCollectionTests.cs</Link>
-    </Compile>
-    <Compile Include="..\LogoFX.Core.Tests\RangeObservableCollectionTests.cs">
-      <Link>RangeObservableCollectionTests.cs</Link>
-    </Compile>
-    <Compile Include="..\LogoFX.Core.Tests\StringExtensionsTests.cs">
-      <Link>StringExtensionsTests.cs</Link>
-    </Compile>
     <Compile Include="CollectionsExtensionsTests.cs" />
     <Compile Include="ConcurrentObservableCollectionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
