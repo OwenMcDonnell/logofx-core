@@ -1,6 +1,5 @@
 configuration: Release
-environment:
-  appveyor_build_worker_cloud: gce
+
 before_build:
 - cd src
 - nuget restore
